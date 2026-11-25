@@ -1,0 +1,93 @@
+{
+  "semanticSegments": [
+    {
+      "startTime": "2024-03-14T09:15:00.000-07:00",
+      "endTime": "2024-03-14T11:30:00.000-07:00",
+      "visit": {
+        "hierarchyLevel": 0,
+        "probability": 0.94,
+        "topCandidate": {
+          "placeId": "ChIJIQBpAG2ahYAR_6128GcTUEo",
+          "semanticType": "TYPE_UNKNOWN",
+          "probability": 0.91,
+          "placeLocation": {
+            "latLng": "37.7749°, -122.4194°"
+          }
+        }
+      }
+    },
+    {
+      "startTime": "2024-03-14T11:35:00.000-07:00",
+      "endTime": "2024-03-14T12:00:00.000-07:00",
+      "activity": {
+        "start": { "latLng": "37.7749°, -122.4194°" },
+        "end": { "latLng": "37.8080°, -122.4177°" },
+        "distanceMeters": 3800,
+        "topCandidate": { "type": "IN_PASSENGER_VEHICLE", "probability": 0.88 }
+      }
+    },
+    {
+      "startTime": "2024-03-14T12:05:00.000-07:00",
+      "endTime": "2024-03-14T14:20:00.000-07:00",
+      "visit": {
+        "hierarchyLevel": 0,
+        "probability": 0.96,
+        "topCandidate": {
+          "placeId": "ChIJ2S9y6YeAhYAR2l6x8c8nX0M",
+          "semanticType": "TYPE_SEARCHED_ADDRESS",
+          "probability": 0.93,
+          "placeLocation": {
+            "latLng": "37.8080°, -122.4177°"
+          }
+        }
+      }
+    },
+    {
+      "startTime": "2024-06-21T16:00:00.000-07:00",
+      "endTime": "2024-06-21T18:10:00.000-07:00",
+      "visit": {
+        "hierarchyLevel": 0,
+        "probability": 0.89,
+        "topCandidate": {
+          "placeId": "ChIJIQBpAG2ahYAR_6128GcTUEo",
+          "probability": 0.87,
+          "placeLocation": {
+            "latLng": "37.77492°, -122.41941°"
+          }
+        }
+      }
+    },
+    {
+      "startTime": "2024-07-02T08:00:00.000-07:00",
+      "endTime": "2024-07-02T09:00:00.000-07:00",
+      "timelinePath": [
+        { "point": "37.7750°, -122.4195°", "time": "2024-07-02T08:05:00.000-07:00" },
+        { "point": "37.7760°, -122.4180°", "time": "2024-07-02T08:15:00.000-07:00" }
+      ]
+    },
+    {
+      "startTime": "2025-01-10T10:00:00.000-08:00",
+      "endTime": "2025-01-10T12:00:00.000-08:00",
+      "visit": {
+        "hierarchyLevel": 0,
+        "probability": 0.92,
+        "topCandidate": {
+          "placeLocation": {
+            "latLng": "37.8199°, -122.4783°"
+          }
+        }
+      }
+    },
+    {
+      "startTime": "2025-01-11T10:00:00.000-08:00",
+      "endTime": "2025-01-11T11:00:00.000-08:00",
+      "visit": {
+        "topCandidate": {
+          "placeLocation": {
+            "latLng": "0.0°, 0.0°"
+          }
+        }
+      }
+    }
+  ]
+}

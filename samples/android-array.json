@@ -1,0 +1,66 @@
+[
+  {
+    "startTime": "2023-11-04T10:20:00.000+09:00",
+    "endTime": "2023-11-04T12:45:00.000+09:00",
+    "visit": {
+      "hierarchyLevel": "0",
+      "probability": "0.95",
+      "topCandidate": {
+        "placeID": "ChIJXSModoWLGGARILWiCfeu2M0",
+        "semanticType": "Unknown",
+        "probability": "0.92",
+        "placeLocation": "geo:35.6586,139.7454"
+      }
+    }
+  },
+  {
+    "startTime": "2023-11-04T13:00:00.000+09:00",
+    "endTime": "2023-11-04T13:25:00.000+09:00",
+    "activity": {
+      "start": "geo:35.6586,139.7454",
+      "end": "geo:35.6762,139.6503",
+      "distanceMeters": "8900",
+      "topCandidate": {
+        "type": "in subway",
+        "probability": "0.91"
+      }
+    }
+  },
+  {
+    "startTime": "2023-11-04T13:30:00.000+09:00",
+    "endTime": "2023-11-04T16:10:00.000+09:00",
+    "visit": {
+      "hierarchyLevel": "0",
+      "probability": "0.91",
+      "topCandidate": {
+        "placeID": "ChIJ51cu8IcbXWARiRtXIothAS4",
+        "semanticType": "Unknown",
+        "probability": "0.88",
+        "placeLocation": "geo:35.6762,139.6503"
+      }
+    }
+  },
+  {
+    "startTime": "2024-04-12T09:00:00.000+09:00",
+    "endTime": "2024-04-12T11:15:00.000+09:00",
+    "visit": {
+      "hierarchyLevel": "0",
+      "probability": "0.97",
+      "topCandidate": {
+        "placeID": "ChIJXSModoWLGGARILWiCfeu2M0",
+        "placeLocation": "geo:35.65862,139.74543"
+      }
+    }
+  },
+  {
+    "startTime": "2024-04-12T14:00:00.000+09:00",
+    "endTime": "2024-04-12T17:00:00.000+09:00",
+    "visit": {
+      "hierarchyLevel": "0",
+      "probability": "0.93",
+      "topCandidate": {
+        "placeLocation": "geo:35.7101,139.8107"
+      }
+    }
+  }
+]

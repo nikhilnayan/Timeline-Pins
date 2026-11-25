@@ -1,0 +1,176 @@
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+
+  *:focus-visible {
+    outline: 2px solid #9a7e3b;
+    outline-offset: 2px;
+  }
+}
+
+/* Tactile atlas surface (light parchment / dark moss) */
+.atlas-panel {
+  background: rgba(247, 245, 236, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(40, 48, 28, 0.16);
+}
+
+.dark .atlas-panel {
+  background: rgba(40, 48, 28, 0.92);
+  border: 1px solid rgba(210, 207, 154, 0.18);
+}
+
+/* Subtle topographic dot-grid paper texture */
+.atlas-grid-bg {
+  background-image: radial-gradient(rgba(40, 48, 28, 0.11) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+.dark .atlas-grid-bg {
+  background-image: radial-gradient(rgba(210, 207, 154, 0.1) 1px, transparent 1px);
+}
+
+/* Custom animated marker clusters in brass & moss */
+.timeline-cluster-icon {
+  background: transparent;
+}
+
+.timeline-cluster-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  font-size: 12px;
+  color: #f7f5ec;
+  background: #323d25;
+  border: 2.5px solid #d2cf9a;
+  box-shadow: 0 6px 16px rgba(40, 48, 28, 0.34);
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 200ms ease;
+  animation: cluster-pop 240ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timeline-cluster-badge:hover {
+  transform: scale(1.1);
+  background: #9a7e3b;
+}
+
+.timeline-cluster-badge.cluster-md {
+  background: #9a7e3b;
+  color: #f7f5ec;
+  border-color: #28301c;
+}
+
+.timeline-cluster-badge.cluster-lg {
+  background: #28301c;
+  color: #d2cf9a;
+  border-color: #9a7e3b;
+}
+
+@keyframes cluster-pop {
+  0% {
+    transform: scale(0.75);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Custom single pin marker */
+.timeline-pin-wrapper {
+  background: transparent;
+}
+
+.timeline-pin-dot {
+  width: 15px;
+  height: 15px;
+  border-radius: 9999px;
+  background: #9a7e3b;
+  border: 2.5px solid #f7f5ec;
+  box-shadow: 0 2px 8px rgba(40, 48, 28, 0.45);
+  transition: transform 160ms ease, background-color 160ms ease;
+}
+
+.dark .timeline-pin-dot {
+  background: #d2cf9a;
+  border-color: #28301c;
+}
+
+.timeline-pin-dot:hover {
+  transform: scale(1.25);
+  background: #28301c;
+}
+
+.dark .timeline-pin-dot:hover {
+  background: #9a7e3b;
+}
+
+/* Leaflet popup styling matching ColorHunt palette */
+.leaflet-popup-content-wrapper {
+  background: #f7f5ec;
+  color: #28301c;
+  border: 1px solid rgba(40, 48, 28, 0.2);
+  border-radius: 10px;
+  padding: 2px;
+  box-shadow: 0 12px 28px rgba(40, 48, 28, 0.22);
+}
+
+.leaflet-popup-tip {
+  background: #f7f5ec;
+}
+
+.dark .leaflet-popup-content-wrapper {
+  background: #28301c;
+  color: #d2cf9a;
+  border: 1px solid rgba(210, 207, 154, 0.24);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.55);
+}
+
+.dark .leaflet-popup-tip {
+  background: #28301c;
+}
+
+.leaflet-container {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: #dce8ee;
+}
+
+.dark .leaflet-container {
+  background: #171d14;
+}
+
+/* Light mode shows natural real-map colors; dark mode inverts cleanly to night-atlas tones */
+.leaflet-tile-pane {
+  filter: none;
+}
+
+.dark .leaflet-tile-pane {
+  filter: invert(92%) hue-rotate(180deg) brightness(0.9) contrast(0.96);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

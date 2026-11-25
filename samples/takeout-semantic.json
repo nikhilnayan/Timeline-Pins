@@ -1,0 +1,84 @@
+{
+  "timelineObjects": [
+    {
+      "placeVisit": {
+        "location": {
+          "latitudeE7": 515080390,
+          "longitudeE7": -1280690,
+          "placeId": "ChIJH-tBOc4EdkgRJj5pL8v1p8k",
+          "address": "Trafalgar Sq, London WC2N 5DN, United Kingdom",
+          "name": "Trafalgar Square"
+        },
+        "duration": {
+          "startTimestamp": "2022-08-15T10:12:00Z",
+          "endTimestamp": "2022-08-15T11:45:00Z"
+        },
+        "placeConfidence": "HIGH_CONFIDENCE"
+      }
+    },
+    {
+      "activitySegment": {
+        "startLocation": {
+          "latitudeE7": 515080390,
+          "longitudeE7": -1280690
+        },
+        "endLocation": {
+          "latitudeE7": 515194133,
+          "longitudeE7": -1269566
+        },
+        "duration": {
+          "startTimestamp": "2022-08-15T11:45:00Z",
+          "endTimestamp": "2022-08-15T12:15:00Z"
+        },
+        "activityType": "WALKING"
+      }
+    },
+    {
+      "placeVisit": {
+        "location": {
+          "latitudeE7": 515194133,
+          "longitudeE7": -1269566,
+          "placeId": "ChIJB9OTMDIbdkgRp0JWbWRlv7M",
+          "address": "Great Russell St, London WC1B 3DG, United Kingdom",
+          "name": "The British Museum"
+        },
+        "duration": {
+          "startTimestamp": "2022-08-15T12:20:00Z",
+          "endTimestamp": "2022-08-15T16:10:00Z"
+        },
+        "placeConfidence": "HIGH_CONFIDENCE"
+      }
+    },
+    {
+      "placeVisit": {
+        "location": {
+          "latitudeE7": 515080410,
+          "longitudeE7": -1280710,
+          "placeId": "ChIJH-tBOc4EdkgRJj5pL8v1p8k",
+          "address": "Trafalgar Sq, London WC2N 5DN, United Kingdom",
+          "name": "Trafalgar Square"
+        },
+        "duration": {
+          "startTimestamp": "2023-05-03T14:00:00Z",
+          "endTimestamp": "2023-05-03T15:30:00Z"
+        },
+        "placeConfidence": "HIGH_CONFIDENCE"
+      }
+    },
+    {
+      "placeVisit": {
+        "location": {
+          "latitudeE7": 488583701,
+          "longitudeE7": 22944813,
+          "address": "Champ de Mars, 5 Av. Anatole France, 75007 Paris, France",
+          "name": "Eiffel Tower"
+        },
+        "duration": {
+          "startTimestampMs": "1715774400000",
+          "endTimestampMs": "1715781600000"
+        },
+        "placeConfidence": "HIGH_CONFIDENCE"
+      }
+    }
+  ]
+}
