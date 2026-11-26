@@ -1,23 +1,12 @@
 {
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cross-Origin-Opener-Policy",
-          "value": "same-origin-allow-popups"
-        }
-      ]
-    }
-  ],
   "rewrites": [
     {
-      "source": "/__/auth/:path*",
-      "destination": "https://timeline-pins.firebaseapp.com/__/auth/:path*"
+      "source": "/sso-callback",
+      "destination": "/index.html"
     },
     {
-      "source": "/__/firebase/init.json",
-      "destination": "https://timeline-pins.firebaseapp.com/__/firebase/init.json"
+      "source": "/sso-callback/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

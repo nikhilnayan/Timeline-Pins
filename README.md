@@ -1,188 +1,60 @@
-# 📍 Timeline Pins
+# Timeline Pins
 
-**Turn your Google Maps Timeline history into a personal travel map.**
+Timeline Pins lets you import your exported Google Maps Timeline JSON files in the browser and explore every place you have visited on a private, interactive map.
 
-Timeline Pins lets you import exported Google Maps Timeline JSON files directly in your browser and explore every place you've visited on a private, interactive map.
-
----
-
-## 🔒 Privacy & Google Timeline
-
-> Google does not provide a public API for Timeline data. Timeline history is stored on your device and must be exported manually as JSON.
-
-- **Continue with Google** is only used to identify your account and store aggregated places in your private Firestore collection.
-- Raw Timeline export files are parsed locally inside a browser Web Worker.
-- **Your original JSON files are never uploaded to any server.**
+> **Clerk Google Sign-In + On-Device IndexedDB**
+> Authentication uses **Clerk** (`Sign in with Google`) with redirect-based OAuth (no popup blockers, no database server that pauses after inactivity). Your parsed places and distance totals are stored privately in your browser's **IndexedDB**, and raw Timeline files are never uploaded.
 
 ---
 
-## ✨ Features
+## Setup Instructions
 
-### 📂 Multiple Timeline Formats
-Supports all three Google Timeline export formats:
+### 1. Create a Clerk Application (free)
+1. Go to the [Clerk Dashboard](https://dashboard.clerk.com/) and create an application.
+2. Enable **Google** under **User & Authentication → Social Connections** (Clerk provides shared Google OAuth keys in development; for production on your own domain, add your Google OAuth credentials in Clerk).
+3. Copy your **Publishable Key** (`pk_test_...` or `pk_live_...`) from **API Keys**.
 
-- **New on-device `Timeline.json`** — `semanticSegments` with coordinate strings.
-- **Android on-device array format** — Visit objects containing `placeLocation` coordinates.
-- **Google Takeout Semantic Location History** — Monthly files containing `timelineObjects` with `latitudeE7` / `longitudeE7`.
+### 2. Configure `.env` (and Vercel Environment Variables)
+Add your key to `.env`:
 
-### ⚡ Fast Browser-side Processing
-- Web Worker parser (`src/workers/parse.worker.js`).
-- Handles large 50 MB+ JSON files without freezing the UI.
-- Automatic place deduplication using coordinates rounded to 4 decimal places (~10 m).
-- Tracks visit count, first visit, last visit, optional name/address and yearly visit histogram.
-
-### 🗺️ Interactive Map
-- Animated marker clustering with `leaflet.markercluster`.
-- Visit-density heatmap using `leaflet.heat`.
-- Filter places by year.
-- Minimum visit count slider.
-- Zoom to all pins.
-- Delete individual places.
-- Open locations directly in Google Maps.
-- Light and dark map themes synchronized with system or manual preferences.
-
-### 📍 Name Your Places
-- Optional reverse geocoding using OpenStreetMap Nominatim.
-- On-demand lookup through the **Name my places** feature.
-- Rate-limited to one request per second.
-- Results cached in Firestore.
-
-### 🔐 Data Management
-- User-scoped Firestore security rules.
-- Private, account-specific place collections.
-- One-click **Delete all my data** option in Settings.
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-
-- Node.js and npm.
-- A Firebase project.
-- Google account for authentication.
-
-### 1. Clone the repository
-
-```bash
-git clone https://github.com/nikhilnayan/Timeline-Pins.git
-cd Timeline-Pins
+```env
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
-### 2. Install dependencies
+When deploying to **Vercel**, add `VITE_CLERK_PUBLISHABLE_KEY` under **Project Settings → Environment Variables** and redeploy. (`vercel.json` is included so `/sso-callback` routes back to the app cleanly.)
+
+### 3. Run Locally
 
 ```bash
 npm install
-```
-
-### 3. Configure Firebase
-
-Create a project in the [Firebase Console](https://console.firebase.google.com/).
-
-Complete the following steps:
-
-1. Enable **Authentication → Sign-in method → Google**.
-2. Create a **Cloud Firestore** database.
-3. Register a **Web App** under Project Settings.
-4. Copy your Firebase configuration values.
-
-### 4. Configure environment variables
-
-Copy `.env.example` to `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Add your Firebase credentials:
-
-```env
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-```
-
-### 5. Deploy Firestore Security Rules
-
-Deploy the included `firestore.rules` file using the Firebase CLI:
-
-```bash
-firebase deploy --only firestore:rules
-```
-
-Alternatively, paste the rules into:
-
-**Firebase Console → Firestore Database → Rules**
-
-These rules ensure that authenticated users can only access documents under their own `users/{their_uid}/places/{placeId}` collection.
-
-### 6. Start the development server
-
-```bash
 npm run dev
 ```
 
 ---
 
-## 🧪 Testing
+## Features
 
-### Unit Tests
+- **Browser-side Web Worker parser** (`src/workers/parse.worker.js`): Handles large 50 MB+ JSON files without freezing the UI.
+- **Supports all 3 Google Timeline export formats**:
+  - New on-device `Timeline.json` (`semanticSegments` with `"12.3456°, 78.9012°"` coordinates)
+  - Android on-device array format (`[{ visit: { topCandidate: { placeLocation: "geo:..." } } }]`)
+  - Google Takeout **Semantic Location History** monthly files (`timelineObjects` with `latitudeE7` / `longitudeE7`)
+- **Smart deduplication & distance tracking**: Groups repeat visits within 4 decimal places (~10 m), merges same-named campus/venue pins within 5 km, tracks `visitCount`, `firstVisit`, `lastVisit`, year histograms, and total **kilometers traveled**.
+- **Interactive Leaflet map**:
+  - Esri World Topo real-world map tiles (no API key required) with light & dark mode
+  - Smooth 60fps wheel zoom (`SmoothWheelZoom`) + `+` / `−` / `Fit all` controls
+  - Animated marker clusters (`leaflet.markercluster`) and thermal heatmap (`leaflet.heat`)
+  - Searchable **Visited Places** directory with date ranges and visit counts
+- **Optional reverse geocoding**: Name unnamed spots with OpenStreetMap Nominatim (1 req/sec, most-visited first) or an optional `VITE_GOOGLE_MAPS_API_KEY`.
+- **Portable backup**: Export your aggregated places as JSON anytime from **Settings**, or wipe all data with **Delete all my data**.
 
-Sample files covering all supported formats, along with a negative test, are available in `/samples`:
+---
 
-- `samples/semantic-segments.json`
-- `samples/android-array.json`
-- `samples/takeout-semantic.json`
-- `samples/records-raw.json`
+## Testing & Build
 
-Run the Vitest test suite:
+Sample files for all supported formats are in `/samples`:
 
 ```bash
 npm test
-```
-
-### Production Build
-
-```bash
 npm run build
 ```
-
----
-
-## 📤 Exporting Google Maps Timeline
-
-Timeline Pins requires an exported JSON file from Google Maps Timeline.
-
-**Android**
-
-`Settings → Location → Location services → Timeline → Export Timeline data`
-
-**iPhone**
-
-`Google Maps → Profile Picture → Your Timeline → Three Dots → Location and privacy settings → Export Timeline data`
-
-**Google Takeout (Older Archives)**
-
-You can also import one or more monthly JSON files from the `Semantic Location History` folder.
-
-> Avoid importing `Records.json`, as it contains raw GPS records rather than structured visit information.
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** React, Vite
-- **Mapping:** Leaflet, Leaflet MarkerCluster, Leaflet Heat
-- **Backend & Authentication:** Firebase Authentication, Cloud Firestore
-- **Processing:** JavaScript Web Workers
-- **Testing:** Vitest
-- **Geocoding:** OpenStreetMap Nominatim
-
----
-
-## 📄 License
-
-See the repository for license information.

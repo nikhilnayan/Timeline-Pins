@@ -1,161 +1,152 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useMemo, useState } from 'react';
 import {
-  getRedirectResult,
-  onAuthStateChanged,
-  signInWithPopup,
-  signInWithRedirect,
-  signOut,
-} from 'firebase/auth';
-import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase.js';
+  ClerkProvider,
+  HandleSSOCallback,
+  useClerk,
+  useSignIn,
+  useUser,
+} from '@clerk/react';
 
 const AuthContext = createContext(null);
-const REDIRECT_FLAG = 'tp_redirect_pending';
 
-function formatAuthError(err) {
-  const code = err?.code || '';
-  if (code === 'auth/popup-blocked') {
-    return 'Your browser blocked the Google sign-in popup. Please allow popups for this site in your browser address bar, then click Continue with Google again.';
+const CLERK_PUBLISHABLE_KEY = (() => {
+  const raw = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  if (!raw || String(raw).includes('your-key') || String(raw).includes('...')) {
+    return '';
   }
-  if (code === 'auth/unauthorized-domain') {
-    const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
-    return `Domain "${host}" is not authorized in Firebase. Add it under Firebase Console > Authentication > Settings > Authorized domains.`;
-  }
-  return err?.message || 'Sign-in failed. Please try again.';
-}
+  return String(raw).trim();
+})();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
+export const isClerkConfigured = Boolean(CLERK_PUBLISHABLE_KEY);
+
+function ClerkAuthBridge({ children }) {
+  const { user: clerkUser, isLoaded: userLoaded } = useUser();
+  const { signOut } = useClerk();
+  const { signIn, errors, fetchStatus } = useSignIn();
+
   const [signingIn, setSigningIn] = useState(false);
   const [authError, setAuthError] = useState(null);
 
-  useEffect(() => {
-    if (!isFirebaseConfigured || !auth) {
-      setAuthLoading(false);
-      return undefined;
-    }
+  const isSsoCallback =
+    typeof window !== 'undefined' &&
+    window.location.pathname.startsWith('/sso-callback');
 
-    let mounted = true;
-    let authChecked = false;
-    let redirectChecked = false;
-
-    const finishLoadingIfReady = () => {
-      if (mounted && authChecked && redirectChecked) {
-        setAuthLoading(false);
-      }
+  const user = useMemo(() => {
+    if (!clerkUser) return null;
+    const email = clerkUser.primaryEmailAddress?.emailAddress || null;
+    return {
+      uid: clerkUser.id,
+      email,
+      displayName: clerkUser.fullName || clerkUser.firstName || email || 'Explorer',
+      photoURL: clerkUser.imageUrl || null,
     };
-
-    getRedirectResult(auth)
-      .then((result) => {
-        if (!mounted) return;
-        const hadPending = sessionStorage.getItem(REDIRECT_FLAG) === '1';
-        sessionStorage.removeItem(REDIRECT_FLAG);
-
-        if (result?.user) {
-          setUser(result.user);
-        } else if (hadPending && !auth.currentUser) {
-          setAuthError(
-            'Redirect sign-in was blocked by browser third-party cookie/storage settings. Please allow popups for this site and use Continue with Google.'
-          );
-        }
-      })
-      .catch((err) => {
-        sessionStorage.removeItem(REDIRECT_FLAG);
-        if (mounted && err?.code && err.code !== 'auth/popup-closed-by-user') {
-          setAuthError(formatAuthError(err));
-        }
-      })
-      .finally(() => {
-        redirectChecked = true;
-        finishLoadingIfReady();
-      });
-
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      if (!mounted) return;
-      if (firebaseUser) {
-        sessionStorage.removeItem(REDIRECT_FLAG);
-      }
-      setUser(firebaseUser);
-      setSigningIn(false);
-      authChecked = true;
-      finishLoadingIfReady();
-    });
-
-    return () => {
-      mounted = false;
-      unsubscribe();
-    };
-  }, []);
+  }, [clerkUser]);
 
   const signInWithGoogle = async () => {
-    if (!isFirebaseConfigured || !auth || !googleProvider) {
-      setAuthError('Firebase is not configured yet. Add your VITE_FIREBASE_* keys to .env.');
-      return;
-    }
-    if (signingIn) return;
-
-    // Trigger signInWithPopup immediately inside the synchronous click gesture
-    const popupPromise = signInWithPopup(auth, googleProvider);
+    if (!signIn || signingIn || fetchStatus === 'fetching') return;
     setAuthError(null);
     setSigningIn(true);
-
     try {
-      await popupPromise;
-    } catch (err) {
-      if (
-        err?.code !== 'auth/popup-closed-by-user' &&
-        err?.code !== 'auth/cancelled-popup-request'
-      ) {
-        setAuthError(formatAuthError(err));
+      const { error } = await signIn.sso({
+        strategy: 'oauth_google',
+        redirectUrl: '/',
+        redirectCallbackUrl: '/sso-callback',
+      });
+      if (error) {
+        setSigningIn(false);
+        setAuthError(
+          error.longMessage ||
+            error.message ||
+            'Google sign-in failed. Make sure Google is enabled in your Clerk Dashboard.'
+        );
       }
-    } finally {
-      setSigningIn(false);
-    }
-  };
-
-  const signInWithGoogleRedirect = async () => {
-    if (!isFirebaseConfigured || !auth || !googleProvider) {
-      setAuthError('Firebase is not configured yet. Add your VITE_FIREBASE_* keys to .env.');
-      return;
-    }
-    if (signingIn) return;
-    setAuthError(null);
-    setSigningIn(true);
-    try {
-      sessionStorage.setItem(REDIRECT_FLAG, '1');
-      await signInWithRedirect(auth, googleProvider);
     } catch (err) {
-      sessionStorage.removeItem(REDIRECT_FLAG);
-      setAuthError(formatAuthError(err));
       setSigningIn(false);
+      setAuthError(
+        err?.errors?.[0]?.longMessage ||
+          err?.message ||
+          'Google sign-in failed. Make sure Google is enabled in your Clerk Dashboard.'
+      );
     }
   };
 
   const logout = async () => {
-    if (!auth) {
-      setUser(null);
-      return;
-    }
-    sessionStorage.removeItem(REDIRECT_FLAG);
-    await signOut(auth);
-    setUser(null);
+    setAuthError(null);
+    await signOut({ redirectUrl: '/' });
   };
+
+  if (isSsoCallback) {
+    const goHome = () => {
+      window.location.replace('/');
+    };
+
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-parchment-50 dark:bg-moss-900">
+        <div className="space-y-3 text-center">
+          <div className="mx-auto h-9 w-9 animate-pulse rounded-md border border-brass-500/40 bg-moss-900/20 dark:bg-parchment-200/20" />
+          <p className="font-mono text-xs uppercase tracking-widest text-moss-700 dark:text-parchment-300">
+            Completing Google Sign-In...
+          </p>
+        </div>
+        <HandleSSOCallback
+          navigateToApp={({ decorateUrl }) => {
+            window.location.replace(decorateUrl('/'));
+          }}
+          navigateToSignIn={goHome}
+          navigateToSignUp={goHome}
+        />
+      </div>
+    );
+  }
+
+  const resolvedError =
+    authError || errors?.global?.[0]?.longMessage || errors?.global?.[0]?.message || null;
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        authLoading,
-        signingIn,
-        authError,
-        isFirebaseConfigured,
+        authLoading: !userLoaded,
+        signingIn: signingIn || fetchStatus === 'fetching',
+        authError: resolvedError,
+        isClerkConfigured: true,
         signInWithGoogle,
-        signInWithGoogleRedirect,
         logout,
       }}
     >
       {children}
     </AuthContext.Provider>
+  );
+}
+
+export function AuthProvider({ children }) {
+  const [unconfiguredError, setUnconfiguredError] = useState(null);
+
+  if (!isClerkConfigured) {
+    return (
+      <AuthContext.Provider
+        value={{
+          user: null,
+          authLoading: false,
+          signingIn: false,
+          authError: unconfiguredError,
+          isClerkConfigured: false,
+          signInWithGoogle: () =>
+            setUnconfiguredError(
+              'Clerk is not configured yet. Add VITE_CLERK_PUBLISHABLE_KEY to .env and Vercel Environment Variables.'
+            ),
+          logout: async () => {},
+        }}
+      >
+        {children}
+      </AuthContext.Provider>
+    );
+  }
+
+  return (
+    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <ClerkAuthBridge>{children}</ClerkAuthBridge>
+    </ClerkProvider>
   );
 }
 

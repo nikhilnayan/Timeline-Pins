@@ -9,6 +9,7 @@ import {
   Square,
   AlertTriangle,
   LogOut,
+  Download,
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
@@ -19,6 +20,7 @@ export default function Settings() {
   const { preference, setThemePreference } = useTheme();
   const {
     places,
+    stats,
     unnamedCount,
     geocoding,
     geocodeError,
@@ -29,6 +31,24 @@ export default function Settings() {
     stopGeocoding,
     clearAllData,
   } = usePlaces();
+
+  const handleDownloadBackup = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      totalPlaces: places.length,
+      totalDistanceKm: stats.totalDistanceKm,
+      places,
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `timeline-pins-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const [keyInput, setKeyInput] = useState(googleMapsKey || '');
   const [keySaved, setKeySaved] = useState(false);
@@ -82,7 +102,7 @@ export default function Settings() {
               )}
               <div>
                 <p className="text-sm font-semibold text-moss-900 dark:text-parchment-200">
-                  {user?.displayName || 'Signed-in Google User'}
+                  {user?.displayName || 'Local Explorer'}
                 </p>
                 <p className="font-mono text-xs text-moss-700/80 dark:text-parchment-300/75">
                   {user?.email}
@@ -146,7 +166,7 @@ export default function Settings() {
             Optional Google Maps API key (with <strong>Maps JavaScript API</strong> &amp;{' '}
             <strong>Geocoding API</strong> enabled in Google Cloud) speeds up naming ~25x.
             Without a key, OpenStreetMap Nominatim runs at 1 req/sec starting with your most
-            visited places and auto-saves every 15 places.
+            visited places and auto-saves locally every 15 places.
           </p>
 
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -225,9 +245,8 @@ export default function Settings() {
                 Privacy &amp; Data
               </h2>
               <p className="mt-1 text-xs leading-relaxed text-moss-700/85 dark:text-parchment-300/80">
-                Raw Timeline files never leave your browser. Only aggregated place pins (
-                {places.length.toLocaleString()} stored) and distance totals are saved under your
-                private Firestore user path.
+                Everything stays in your browser&apos;s IndexedDB ({places.length.toLocaleString()}{' '}
+                places stored). Raw Timeline files are never uploaded anywhere.
               </p>
             </div>
           </div>
@@ -238,7 +257,17 @@ export default function Settings() {
             </p>
           )}
 
-          <div className="mt-5 border-t border-moss-900/15 pt-4 dark:border-parchment-200/15">
+          <div className="mt-5 flex flex-wrap items-center gap-2.5 border-t border-moss-900/15 pt-4 dark:border-parchment-200/15">
+            <button
+              type="button"
+              disabled={places.length === 0}
+              onClick={handleDownloadBackup}
+              className="inline-flex items-center gap-2 rounded-lg border border-moss-900/20 bg-parchment-50 px-4 py-2 text-xs font-semibold text-moss-900 transition hover:bg-parchment-200/50 disabled:opacity-45 dark:border-parchment-200/20 dark:bg-moss-900 dark:text-parchment-200"
+            >
+              <Download className="h-3.5 w-3.5 text-brass-600 dark:text-brass-300" aria-hidden="true" />
+              Export places backup
+            </button>
+
             {!confirmDelete ? (
               <button
                 type="button"

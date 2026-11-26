@@ -267,7 +267,7 @@ export function PlacesProvider({ children }) {
                 parsed.places.some((inc) => inc.id === fp.id)
               );
 
-        setImportStage(`Saving ${placesToWrite.length.toLocaleString()} places to Firestore...`);
+        setImportStage(`Saving ${placesToWrite.length.toLocaleString()} places locally...`);
         await savePlacesBatched(user.uid, placesToWrite, (pct) => {
           setImportProgress(75 + Math.round(pct * 0.25));
         });
