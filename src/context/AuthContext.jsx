@@ -9,6 +9,7 @@ import {
 import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase.js';
 
 const AuthContext = createContext(null);
+const REDIRECT_FLAG = 'tp_redirect_pending';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -22,19 +23,56 @@ export function AuthProvider({ children }) {
       return undefined;
     }
 
-    getRedirectResult(auth).catch((err) => {
-      if (err?.code && err.code !== 'auth/popup-closed-by-user') {
-        setAuthError(err.message || 'Sign-in redirect failed. Please try again.');
+    let mounted = true;
+    let authChecked = false;
+    let redirectChecked = false;
+
+    const finishLoadingIfReady = () => {
+      if (mounted && authChecked && redirectChecked) {
+        setAuthLoading(false);
       }
-    });
+    };
+
+    getRedirectResult(auth)
+      .then((result) => {
+        if (!mounted) return;
+        const hadPending = sessionStorage.getItem(REDIRECT_FLAG) === '1';
+        sessionStorage.removeItem(REDIRECT_FLAG);
+
+        if (result?.user) {
+          setUser(result.user);
+        } else if (hadPending && !auth.currentUser) {
+          setAuthError(
+            'Could not complete Google sign-in after redirect. Check that your site domain is added to Firebase Authorized Domains and your OAuth Redirect URI includes /__/auth/handler.'
+          );
+        }
+      })
+      .catch((err) => {
+        sessionStorage.removeItem(REDIRECT_FLAG);
+        if (mounted && err?.code && err.code !== 'auth/popup-closed-by-user') {
+          setAuthError(err.message || 'Sign-in redirect failed. Please try again.');
+        }
+      })
+      .finally(() => {
+        redirectChecked = true;
+        finishLoadingIfReady();
+      });
 
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (!mounted) return;
+      if (firebaseUser) {
+        sessionStorage.removeItem(REDIRECT_FLAG);
+      }
       setUser(firebaseUser);
-      setAuthLoading(false);
       setSigningIn(false);
+      authChecked = true;
+      finishLoadingIfReady();
     });
 
-    return () => unsubscribe();
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
   }, []);
 
   const signInWithGoogle = async () => {
@@ -54,9 +92,11 @@ export function AuthProvider({ children }) {
         err?.code === 'auth/operation-not-supported-in-this-environment'
       ) {
         try {
+          sessionStorage.setItem(REDIRECT_FLAG, '1');
           await signInWithRedirect(auth, googleProvider);
           return;
         } catch (redirectErr) {
+          sessionStorage.removeItem(REDIRECT_FLAG);
           setAuthError(
             redirectErr?.message || 'Sign-in redirect failed. Please allow popups and try again.'
           );
@@ -77,6 +117,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       return;
     }
+    sessionStorage.removeItem(REDIRECT_FLAG);
     await signOut(auth);
     setUser(null);
   };
