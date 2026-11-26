@@ -3,7 +3,13 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 export default function Login() {
-  const { signInWithGoogle, signingIn, authError, isFirebaseConfigured } = useAuth();
+  const {
+    signInWithGoogle,
+    signInWithGoogleRedirect,
+    signingIn,
+    authError,
+    isFirebaseConfigured,
+  } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
 
   return (
@@ -107,6 +113,17 @@ export default function Login() {
               </svg>
               {signingIn ? 'Signing in...' : 'Continue with Google'}
             </button>
+
+            {authError && (
+              <button
+                type="button"
+                disabled={signingIn}
+                onClick={signInWithGoogleRedirect}
+                className="text-xs font-semibold text-brass-700 underline underline-offset-4 hover:text-brass-600 disabled:opacity-50 dark:text-brass-300"
+              >
+                Or try redirect sign-in instead
+              </button>
+            )}
 
             <p className="text-xs text-moss-700/80 dark:text-parchment-300/75">
               Sign-in only identifies your account — files parse locally in your browser and raw

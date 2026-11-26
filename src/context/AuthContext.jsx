@@ -11,6 +11,18 @@ import { auth, googleProvider, isFirebaseConfigured } from '../lib/firebase.js';
 const AuthContext = createContext(null);
 const REDIRECT_FLAG = 'tp_redirect_pending';
 
+function formatAuthError(err) {
+  const code = err?.code || '';
+  if (code === 'auth/popup-blocked') {
+    return 'Your browser blocked the Google sign-in popup. Please allow popups for this site in your browser address bar, then click Continue with Google again.';
+  }
+  if (code === 'auth/unauthorized-domain') {
+    const host = typeof window !== 'undefined' ? window.location.hostname : 'this domain';
+    return `Domain "${host}" is not authorized in Firebase. Add it under Firebase Console > Authentication > Settings > Authorized domains.`;
+  }
+  return err?.message || 'Sign-in failed. Please try again.';
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(isFirebaseConfigured);
@@ -43,14 +55,14 @@ export function AuthProvider({ children }) {
           setUser(result.user);
         } else if (hadPending && !auth.currentUser) {
           setAuthError(
-            'Could not complete Google sign-in after redirect. Check that your site domain is added to Firebase Authorized Domains and your OAuth Redirect URI includes /__/auth/handler.'
+            'Redirect sign-in was blocked by browser third-party cookie/storage settings. Please allow popups for this site and use Continue with Google.'
           );
         }
       })
       .catch((err) => {
         sessionStorage.removeItem(REDIRECT_FLAG);
         if (mounted && err?.code && err.code !== 'auth/popup-closed-by-user') {
-          setAuthError(err.message || 'Sign-in redirect failed. Please try again.');
+          setAuthError(formatAuthError(err));
         }
       })
       .finally(() => {
@@ -88,26 +100,30 @@ export function AuthProvider({ children }) {
       await signInWithPopup(auth, googleProvider);
     } catch (err) {
       if (
-        err?.code === 'auth/popup-blocked' ||
-        err?.code === 'auth/operation-not-supported-in-this-environment'
-      ) {
-        try {
-          sessionStorage.setItem(REDIRECT_FLAG, '1');
-          await signInWithRedirect(auth, googleProvider);
-          return;
-        } catch (redirectErr) {
-          sessionStorage.removeItem(REDIRECT_FLAG);
-          setAuthError(
-            redirectErr?.message || 'Sign-in redirect failed. Please allow popups and try again.'
-          );
-        }
-      } else if (
         err?.code !== 'auth/popup-closed-by-user' &&
         err?.code !== 'auth/cancelled-popup-request'
       ) {
-        setAuthError(err?.message || 'Sign-in failed. Please try again.');
+        setAuthError(formatAuthError(err));
       }
     } finally {
+      setSigningIn(false);
+    }
+  };
+
+  const signInWithGoogleRedirect = async () => {
+    if (!isFirebaseConfigured || !auth || !googleProvider) {
+      setAuthError('Firebase is not configured yet. Add your VITE_FIREBASE_* keys to .env.');
+      return;
+    }
+    if (signingIn) return;
+    setAuthError(null);
+    setSigningIn(true);
+    try {
+      sessionStorage.setItem(REDIRECT_FLAG, '1');
+      await signInWithRedirect(auth, googleProvider);
+    } catch (err) {
+      sessionStorage.removeItem(REDIRECT_FLAG);
+      setAuthError(formatAuthError(err));
       setSigningIn(false);
     }
   };
@@ -131,6 +147,7 @@ export function AuthProvider({ children }) {
         authError,
         isFirebaseConfigured,
         signInWithGoogle,
+        signInWithGoogleRedirect,
         logout,
       }}
     >

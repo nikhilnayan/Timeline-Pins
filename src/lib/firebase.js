@@ -3,16 +3,17 @@ import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 const envAuthDomain = import.meta.env.VITE_FIREBASE_AUTH_DOMAIN;
+const useSameOriginAuth = import.meta.env.VITE_AUTH_SAME_ORIGIN === 'true';
 const isLocalhost =
   typeof window !== 'undefined' &&
   (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  // Use same-origin host in deployed environments (via vercel.json /__/auth proxy)
-  // so modern browsers do not block signInWithRedirect via third-party storage partitioning.
   authDomain:
-    typeof window !== 'undefined' && !isLocalhost ? window.location.host : envAuthDomain,
+    useSameOriginAuth && typeof window !== 'undefined' && !isLocalhost
+      ? window.location.host
+      : envAuthDomain,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
