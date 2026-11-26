@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 
 export default function Login() {
-  const { signInWithGoogle, authError, isFirebaseConfigured } = useAuth();
+  const { signInWithGoogle, signingIn, authError, isFirebaseConfigured } = useAuth();
   const { resolvedTheme, toggleTheme } = useTheme();
 
   return (
@@ -83,8 +83,9 @@ export default function Login() {
           <div className="mt-8 flex flex-col items-start gap-3">
             <button
               type="button"
+              disabled={signingIn}
               onClick={signInWithGoogle}
-              className="inline-flex items-center gap-3 rounded-lg border border-moss-900 bg-moss-900 px-6 py-3.5 text-sm font-semibold text-parchment-200 shadow-atlas transition hover:bg-moss-800 dark:border-parchment-200 dark:bg-parchment-200 dark:text-moss-900 dark:hover:bg-parchment-100"
+              className="inline-flex items-center gap-3 rounded-lg border border-moss-900 bg-moss-900 px-6 py-3.5 text-sm font-semibold text-parchment-200 shadow-atlas transition hover:bg-moss-800 disabled:opacity-60 dark:border-parchment-200 dark:bg-parchment-200 dark:text-moss-900 dark:hover:bg-parchment-100"
             >
               <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                 <path
@@ -104,7 +105,7 @@ export default function Login() {
                   d="M12 23.75c3.24 0 5.95-1.07 7.94-2.91l-3.87-3c-1.07.72-2.45 1.15-4.07 1.15-3.03 0-5.61-2.08-6.6-4.96l-3.8 2.68C3.57 21.06 7.46 23.75 12 23.75z"
                 />
               </svg>
-              Continue with Google
+              {signingIn ? 'Signing in...' : 'Continue with Google'}
             </button>
 
             <p className="text-xs text-moss-700/80 dark:text-parchment-300/75">
