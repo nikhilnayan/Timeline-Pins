@@ -93,11 +93,14 @@ export function AuthProvider({ children }) {
       return;
     }
     if (signingIn) return;
+
+    // Trigger signInWithPopup immediately inside the synchronous click gesture
+    const popupPromise = signInWithPopup(auth, googleProvider);
     setAuthError(null);
     setSigningIn(true);
 
     try {
-      await signInWithPopup(auth, googleProvider);
+      await popupPromise;
     } catch (err) {
       if (
         err?.code !== 'auth/popup-closed-by-user' &&
